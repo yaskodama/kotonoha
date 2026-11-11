@@ -1,0 +1,96 @@
+diff --git a/include/shprototypes.h b/include/shprototypes.h
+index 3edf5d8..6a25f9d 100644
+--- a/include/shprototypes.h
++++ b/include/shprototypes.h
+@@ -43,6 +43,9 @@ extern	shellcmd  xsh_led	(int32, char *[]);
+ /* in file xsh_memdump.c */
+ extern	shellcmd  xsh_memdump	(int32, char *[]);
+ 
++/* in file xsh_koto.c（ことのは: ファイルシステムとコンパイラ） */
++extern	shellcmd  xsh_koto	(int32, char *[]);
++
+ /* in file xsh_memstat.c */
+ extern	shellcmd  xsh_memstat	(int32, char *[]);
+ 
+diff --git a/shell/shell.c b/shell/shell.c
+index 97eb315..b924523 100644
+--- a/shell/shell.c
++++ b/shell/shell.c
+@@ -18,6 +18,7 @@ const	struct	cmdent	cmdtab[] = {
+ 	{"help",	xsh_help},
+ 	{"ls"	,	xsh_ls},
+ 	{"kill",	xsh_kill},
++	{"koto",	xsh_koto},
+ 	{"memdump",	xsh_memdump},
+ 	{"memstat",	xsh_memstat},
+ 	{"ns",		xsh_ns},
+diff --git a/system/i386.c b/system/i386.c
+index 204edd2..e719dd8 100644
+--- a/system/i386.c
++++ b/system/i386.c
+@@ -52,13 +52,15 @@ void	setsegs()
+ 	psd->sd_lolimit = np;
+ 	psd->sd_hilimit = np >> 16;
+ 
++	/* データとスタックのセグメントは 4GB まで（画面の線形フレームバッファが 0xFD000000 付近にあるため）。
++	 * ことのはの GUI（system/gfx.c）のために広げた。元は npages（16MB）だった。 */
+ 	psd = &gdt_copy[2];	/* kernel data segment */
+-	psd->sd_lolimit = npages;
+-	psd->sd_hilimit = npages >> 16;
++	psd->sd_lolimit = 0xFFFF;
++	psd->sd_hilimit = 0xF;
+ 
+ 	psd = &gdt_copy[3];	/* kernel stack segment */
+-	psd->sd_lolimit = npages;
+-	psd->sd_hilimit = npages >> 16;
++	psd->sd_lolimit = 0xFFFF;
++	psd->sd_hilimit = 0xF;
+ 
+ 	psd = &gdt_copy[4];	/* bootp code segment */
+ 	psd->sd_lolimit = npages;   /* Allows execution of 0x100000 CODE */
+diff --git a/system/main.c b/system/main.c
+index 388725b..9b7aeb7 100644
+--- a/system/main.c
++++ b/system/main.c
+@@ -2,33 +2,21 @@
+ 
+ #include <xinu.h>
+ 
+-/* Sample process that prints a greeting N times with a small delay. */
+-process greeter(char *name, int32 count)
+-{
+-	int32 i;
+-	for (i = 1; i <= count; i++) {
+-		kprintf("[%s] hello from Xinu! (%d/%d)\n", name, i, count);
+-		sleepms(300);
+-	}
+-	return OK;
+-}
++/* ことのはの開発環境（ウィンドウシステム＋ブラウザ＋デバッガ）。~/kotonoha/xinu/install.sh で組み込む */
++extern	process	kgui_main(void);
++extern	int32	gfx_init(void);
+ 
+ process	main(void)
+ {
+ 	pid32	shpid;		/* Shell process ID */
+-	pid32	g1, g2;
+ 
+ 	printf("\n\n");
+ 
+-	/* --- Sample program: spawn two cooperating processes --- */
+-	kprintf("=== Sample: two greeter processes running concurrently ===\n");
+-	g1 = create((void *)greeter, 4096, 50, "greeter-A", 2, "Alice", 3);
+-	g2 = create((void *)greeter, 4096, 50, "greeter-B", 2, "Bob",   3);
+-	resume(g1);
+-	resume(g2);
+-	/* Wait long enough for both to finish before launching the shell. */
+-	sleepms(2500);
+-	kprintf("=== Sample finished, starting shell ===\n\n");
++	/* --- 画面があれば、ことのはの開発環境を別のプロセスで動かす（シェルはシリアルのまま） --- */
++	if (gfx_init() == OK) {
++		resume(create(kgui_main, 65536, 30, "kgui", 0));
++		kprintf("ことのはの開発環境を画面に出しました\n");
++	}
+ 
+ 	/* Create a local file system on the RAM disk */
+ 

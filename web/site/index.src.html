@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ことのは — 日本語の文章で書くアクター並列言語</title>
+  <meta name="description" content="ことのは：日本語の文章として読めるアクター型並列プログラミング言語。インデントなしの文章形式とインデントありの構造化形式を、ブラウザの中で相互に変換できます。">
+  <style>
+    :root {
+      --ink: #1d2433; --mute: #5f6b80; --line: #e2e6ee; --bg: #f8f7f3; --card: #ffffff;
+      --main: #7a2e3a; --accent: #c8553d; --code-bg: #fffdf7; --code-ink: #1d2433; --ok: #2e7d32; --err: #c62828;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.85;
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, "Helvetica Neue", Arial, sans-serif; }
+    a { color: var(--main); }
+    .mincho { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; }
+    code, pre, textarea, .mono { font-family: "SFMono-Regular", Menlo, Consolas, "Hiragino Kaku Gothic ProN", monospace; }
+
+    header.top { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.93);
+      backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+    .top-inner { max-width: 1080px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 18px; }
+    .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: .08em; color: var(--ink); text-decoration: none; }
+    .logo span { color: var(--accent); }
+    .top nav { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; }
+    .top nav a { color: var(--ink); text-decoration: none; font-size: .92rem; font-weight: 600; }
+    .top nav a:hover { color: var(--main); }
+
+    .hero { background: linear-gradient(160deg, #3b1820 0%, #6b2834 55%, #8c3a3f 100%); color: #fff; }
+    .hero-inner { max-width: 1080px; margin: 0 auto; padding: 56px 20px; display: grid;
+      grid-template-columns: 1fr 1.05fr; gap: 36px; align-items: center; }
+    .hero h1 { margin: 0 0 4px; font-size: clamp(2.6rem, 6vw, 3.8rem); letter-spacing: .12em; font-weight: 700; }
+    .hero .full { margin: 0 0 18px; opacity: .8; font-size: .95rem; }
+    .hero .lead { font-size: 1.12rem; margin: 0 0 24px; }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-block; padding: 10px 20px; border-radius: 999px; text-decoration: none;
+      border: 0; cursor: pointer; font: inherit; font-weight: 700; font-size: .95rem; }
+    .btn.primary { background: #fff; color: var(--main); }
+    .btn.ghost { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.7); }
+    .btn.dark { background: var(--main); color: #fff; }
+    .btn.light { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+    .btn:disabled { opacity: .5; cursor: default; }
+
+    .duo { display: grid; gap: 10px; }
+    .duo .pane { background: rgba(255,255,255,.96); color: var(--ink); border-radius: 12px; padding: 12px 14px;
+      font-size: .84rem; line-height: 1.7; box-shadow: 0 12px 30px rgba(0,0,0,.25); }
+    .duo .tag { display: inline-block; font-size: .72rem; font-weight: 700; color: #fff; background: var(--accent);
+      border-radius: 6px; padding: 0 8px; margin-bottom: 4px; }
+    .duo .tag.b { background: #445; }
+    .duo pre { margin: 0; white-space: pre-wrap; word-break: break-all; font-size: .82rem; }
+    .duo .arrow { text-align: center; font-size: .82rem; opacity: .9; }
+
+    main section { max-width: 1080px; margin: 0 auto; padding: 52px 20px 8px; }
+    h2 { font-size: 1.55rem; margin: 0 0 6px; }
+    h3 { font-size: 1.08rem; }
+    .sec-sub { color: var(--mute); margin: 0 0 22px; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+    .feature .ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+      background: #f6e9e6; color: var(--main); font-weight: 800; margin-bottom: 8px; }
+    .feature h3 { margin: 0 0 4px; font-size: 1.04rem; }
+    .feature p { margin: 0; color: var(--mute); font-size: .93rem; }
+
+    pre.code { background: var(--code-bg); color: var(--code-ink); border: 1px solid var(--line); padding: 16px 18px;
+      border-radius: 12px; overflow-x: auto; font-size: .86rem; line-height: 1.75; margin: 0; white-space: pre-wrap; word-break: break-all; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .two .cap { font-weight: 700; font-size: .9rem; margin: 0 0 6px; }
+    .note { background: #fff7e6; border: 1px solid #f3dfb5; border-radius: 12px; padding: 12px 16px; font-size: .92rem; }
+    .rules { padding-left: 1.2em; } .rules li { margin: 4px 0; }
+    .rules b { color: var(--main); }
+
+    .playground { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+    .pg-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 12px 14px;
+      border-bottom: 1px solid var(--line); background: #fcfbf8; }
+    .pg-bar select { font: inherit; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
+    .pg-body { display: grid; grid-template-columns: 1fr auto 1fr; }
+    .pg-col { display: flex; flex-direction: column; min-width: 0; }
+    .pg-col .label { font-size: .78rem; font-weight: 700; color: var(--mute); padding: 8px 14px 4px; display: flex; gap: 8px; align-items: center; }
+    .pg-col textarea { width: 100%; min-height: 460px; resize: vertical; border: 0; outline: none; border-top: 1px solid var(--line);
+      padding: 12px 14px; font-size: .85rem; line-height: 1.7; background: var(--code-bg); color: var(--code-ink); tab-size: 4; }
+    .pg-mid { display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 10px;
+      border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: #fcfbf8; }
+    .pg-mid .btn { font-size: .85rem; padding: 8px 14px; white-space: nowrap; }
+    .status { padding: 10px 14px; border-top: 1px solid var(--line); font-size: .88rem; min-height: 44px; white-space: pre-wrap; }
+    .status.ok { color: var(--ok); } .status.err { color: var(--err); font-weight: 700; }
+    .runbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px 14px; border-top: 1px solid var(--line); background: #fcfbf8; }
+    .runbar select, .runbar input[type=number] { font: inherit; font-size: .88rem; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: #fff; }
+    .runbar input[type=number] { width: 6.5em; }
+    .runbar label { font-size: .86rem; color: var(--mute); display: inline-flex; align-items: center; gap: 4px; }
+    .runbar .btn.go { background: var(--accent); color: #fff; }
+    .console { background: #1f1a1c; color: #f2ece6; font-size: .86rem; line-height: 1.65; padding: 12px 16px; height: 340px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+    .console .trace { color: #a99c94; font-size: .8rem; }
+    .console .err { color: #ff8a80; font-weight: 700; }
+    .console .sum { color: #9ccc65; }
+    .console .warn { color: #ffcc80; }
+
+    details.bnf { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; }
+    details.bnf summary { cursor: pointer; font-weight: 700; }
+    details.bnf pre { font-size: .78rem; line-height: 1.6; overflow-x: auto; white-space: pre; margin: 10px 0 4px; }
+
+    table.check { border-collapse: collapse; width: 100%; background: var(--card); border: 1px solid var(--line);
+      border-radius: 12px; overflow: hidden; font-size: .92rem; }
+    table.check th, table.check td { padding: 10px 14px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    table.check th { background: #fcfbf8; font-size: .85rem; color: var(--mute); }
+    table.check td.r { color: var(--ok); font-weight: 700; white-space: nowrap; }
+
+    .links { display: flex; gap: 12px; flex-wrap: wrap; }
+    footer { margin-top: 56px; padding: 24px 20px; text-align: center; color: var(--mute); font-size: .85rem; border-top: 1px solid var(--line); }
+
+    @media (max-width: 860px) {
+      .hero-inner, .two { grid-template-columns: 1fr; }
+      .features { grid-template-columns: 1fr 1fr; }
+      .pg-body { grid-template-columns: 1fr; }
+      .pg-mid { flex-direction: row; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); justify-content: center; flex-wrap: wrap; }
+      .pg-col textarea { min-height: 300px; }
+      .top nav { display: none; }
+    }
+    @media (max-width: 520px) { .features { grid-template-columns: 1fr; } table.check { font-size: .84rem; } }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="logo mincho" href="#">ことのは<span>。</span></a>
+      <nav>
+        <a href="#features">特徴</a>
+        <a href="#two">二つの書き方</a>
+        <a href="#try">試してみる</a>
+        <a href="#grammar">文法</a>
+        <a href="#check">検証</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1 class="mincho">ことのは</h1>
+        <p class="full">日本語の文章で書く、アクター型の並列プログラミング言語</p>
+        <p class="lead">プログラムを<strong>日本語の文章</strong>として書きます。同じプログラムは、字下げで構造を示す<strong>構造化形式</strong>にも書けて、二つの書き方は<strong>機械的に行き来</strong>できます。</p>
+        <div class="btns">
+          <a class="btn primary" href="#try">ブラウザで動かしてみる</a>
+          <a class="btn ghost" href="#grammar">文法を見る</a>
+        </div>
+      </div>
+      <div class="duo" aria-label="二つの書き方の例">
+        <div class="pane"><span class="tag">文章形式</span>
+<pre class="mincho">フォークが「返す」というメッセージを受け取ったとき、待ち行列が空でなければ、待ち行列の先頭から次の哲学者を取り出し、次の哲学者に「渡す」というメッセージを送る。そうでなければ、使用中をいいえに変更する。</pre></div>
+        <div class="arrow">▲ ▼　同じ構文木を経由して相互に変換</div>
+        <div class="pane"><span class="tag b">構造化形式</span>
+<pre>「返す」を受け取ったとき、
+    もし 待ち行列 が 空 でない ならば、
+        次の哲学者 は 待ち行列 の先頭を取り出す。
+        次の哲学者 に「渡す」を送る。
+    そうでなければ、
+        使用中 は いいえ。
+    以上。
+以上。</pre></div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section id="features">
+      <h2>特徴</h2>
+      <p class="sec-sub">自然な日本語に見えて、読み方はひと通りにしか決まらない──そのための言語設計です。</p>
+      <div class="features">
+        <div class="feature"><div class="ic">文</div>
+          <h3>文章がそのままプログラム</h3>
+          <p>字下げも括弧も使いません。「〜を受け取ったとき、」「〜ならば、」「〜を送る。」といった日本語の言い回しで構造を表します。</p></div>
+        <div class="feature"><div class="ic">ア</div>
+          <h3>アクターとメッセージ</h3>
+          <p>処理の単位は独立したアクター。状態を共有せず、メッセージを送り合って協調します。このページの中で実際に動かせます。</p></div>
+        <div class="feature"><div class="ic">⇅</div>
+          <h3>二つの書き方を行き来</h3>
+          <p>文章形式と、字下げで構造を示す構造化形式。どちらで書いても同じ構文木になり、片方からもう片方を機械的に作れます。</p></div>
+        <div class="feature"><div class="ic">一</div>
+          <h3>一文方式</h3>
+          <p>「〜ならば、」の本体はその一文だけ。二文以上は「次のことを行う。…以上。」で囲みます。これで日本語の曖昧さを文法から締め出します。</p></div>
+        <div class="feature"><div class="ic">0</div>
+          <h3>衝突 0 の LR(1) 文法</h3>
+          <p>文法は bison で検査済み。衝突は 0 件で、正しい文章なら読み方は必ずひと通りに決まります（全 90 規則）。</p></div>
+        <div class="feature"><div class="ic">名</div>
+          <h3>名前は宣言から切り出す</h3>
+          <p>日本語には空白がないので、宣言された名前（「先のフォーク」など）と予約語を、長いものから優先して切り出します。</p></div>
+      </div>
+    </section>
+
+    <section id="two">
+      <h2>二つの書き方</h2>
+      <p class="sec-sub">5 人の哲学者問題の「フォーク」アクターを、二つの形式で並べました。左を解析すると右が得られ、右を逆変換すると左に戻ります。</p>
+      <div class="two">
+        <div><p class="cap">文章形式（インデントなし）</p>
+<pre class="code mincho">フォークというアクターを定義する。
+フォークは番号と使用中と待ち行列を持つ。
+番号の初期値は0とし、使用中の初期値はいいえとし、待ち行列の初期値は空とする。
+
+フォークが「取りたい」というメッセージと哲学者を受け取ったとき、使用中がいいえならば、使用中をはいに変更し、哲学者に「渡す」というメッセージを送る。そうでなければ、哲学者を待ち行列の末尾に追加する。
+
+フォークが「返す」というメッセージを受け取ったとき、待ち行列が空でなければ、待ち行列の先頭から次の哲学者を取り出し、次の哲学者に「渡す」というメッセージを送る。そうでなければ、使用中をいいえに変更する。
+
+これでフォークの定義を終わる。</pre></div>
+        <div><p class="cap">構造化形式（インデントあり）</p>
+<pre class="code">「フォーク」というアクターを定義する。
+    状態は 番号、使用中、待ち行列。
+    初期状態は
+        番号 は 0。
+        使用中 は いいえ。
+        待ち行列 は 空。
+    以上。
+    「取りたい」と 哲学者 を受け取ったとき、
+        もし 使用中 が いいえ ならば、
+            使用中 は はい。
+            哲学者 に「渡す」を送る。
+        そうでなければ、
+            待ち行列 に 哲学者 を追加する。
+        以上。
+    以上。
+    「返す」を受け取ったとき、
+        もし 待ち行列 が 空 でない ならば、
+            次の哲学者 は 待ち行列 の先頭を取り出す。
+            次の哲学者 に「渡す」を送る。
+        そうでなければ、
+            使用中 は いいえ。
+        以上。
+    以上。
+定義を終わる。</pre></div>
+      </div>
+      <p style="margin-top:18px">哲学者は、番号の小さいフォークから先に取ります。そのため哲学者5だけはフォーク1を先に取り、全員が片方のフォークを握って待ち合う輪ができません（デッドロックしない）。フォークもアクターなので、隣り合わない哲学者は同時に食事できます。全文は「試してみる」の見本で読めます。</p>
+    </section>
+
+    <section id="try">
+      <h2>試してみる</h2>
+      <p class="sec-sub">サーバは使いません。このページに入っている解析器・逆変換器・実行系が、ブラウザの中で変換し、実行します。どちらの欄も書き換えられます。</p>
+      <div class="playground">
+        <div class="pg-bar">
+          <label for="sample">見本</label>
+          <select id="sample"></select>
+          <span style="color:var(--mute);font-size:.82rem">⌘ / Ctrl + Enter で、カーソルのある欄から反対側へ変換</span>
+        </div>
+        <div class="pg-body">
+          <div class="pg-col">
+            <div class="label">文章形式（インデントなし）</div>
+            <textarea id="bunsho" class="mincho" spellcheck="false" aria-label="文章形式"></textarea>
+          </div>
+          <div class="pg-mid">
+            <button class="btn dark" id="toKozo" type="button">構造化形式へ ▶</button>
+            <button class="btn light" id="toBunsho" type="button">◀ 文章形式へ</button>
+          </div>
+          <div class="pg-col">
+            <div class="label">構造化形式（インデントあり）</div>
+            <textarea id="kozo" spellcheck="false" aria-label="構造化形式"></textarea>
+          </div>
+        </div>
+        <div class="status" id="status" aria-live="polite"></div>
+        <div class="runbar">
+          <button class="btn go" id="runBtn" type="button">▶ 実行</button>
+          <button class="btn light" id="stopBtn" type="button" disabled>停止</button>
+          <label>動く順
+            <select id="order">
+              <option value="random">ばらばら（乱数）</option>
+              <option value="fifo">送られた順</option>
+            </select></label>
+          <label>乱数の種 <input type="number" id="seed" value="1" min="1"></label>
+          <button class="btn light" id="seedBtn" type="button" title="種を変えて実行">種を変えて実行</button>
+          <label><input type="checkbox" id="slow"> ゆっくり</label>
+          <label><input type="checkbox" id="verbose"> メッセージの動きも表示</label>
+        </div>
+        <div class="console mono" id="console" aria-live="polite"></div>
+      </div>
+      <p class="note" style="margin-top:16px">逆変換で戻ってくるのは<strong>標準の書き方</strong>です。「その哲学者」の「その」や、文をどこで「。」で切ったかは構文木に残らないので、元の言い回しとは少し違うことがあります。構造化形式のほうは、往復しても一字も変わりません。<br>
+      <strong>実行</strong>は、文章形式の欄のプログラムを構文木にして解釈します。アクターはそれぞれ受信箱を持ち、届いたメッセージを一通ずつ処理します。どのアクターが次に動くかは「動く順」で選びます。「ばらばら」は種つきの乱数なので、同じ種なら何度でも同じ動きを再現できます。種を変えると、並列ならではの別の動きになります。</p>
+    </section>
+
+    <section id="grammar">
+      <h2>文法</h2>
+      <p class="sec-sub">文章形式の文法は、文脈自由文法（BNF）で書けます。インデントを使わないので、Python のような字下げの扱いも要りません。</p>
+      <ul class="rules">
+        <li><b>文は「。」で終わる。</b>一つの文の中では、動作を連用形（「変更し、」）でつなぎ、終止形（「送る。」）で閉じる。</li>
+        <li><b>一文方式：</b>「〜ならば、」「そうでなければ、」「〜について、」の本体は、その一文だけ。二文以上は「次のことを行う。 … 以上。」で囲む。</li>
+        <li><b>条件の入れ子</b>は「次のことを行う。」の中に書く。こうすると「そうでなければ」がどの「ならば」に付くか迷う余地がない。</li>
+        <li><b>受信節</b>（「〜を受け取ったとき、」）の本体は、次の受信節か「これで〜の定義を終わる。」まで。</li>
+        <li><b>計算</b>は括弧で囲む：「（AにBを加えた数）」「（AからBを引いた数）」「（AをBで割った余り）」。配列の長さは「列の要素数」、要素は「列の（現在の番号）番目」で、要素にも値を設定できる。</li>
+        <li><b>繰り返しの範囲</b>には式が書ける（「1から（列の要素数から1を引いた数）までの各番号について、」）。範囲は入る前に一度だけ計算するので、入れ子の内側の範囲には外側の「現在の番号」が使える。</li>
+        <li><b>名前</b>はアクター名・状態・受信の引数・「〜と名付ける」「〜を取り出す」で導入され、字句解析は予約語と宣言済みの名前を最長一致で切り出す。</li>
+      </ul>
+      <details class="bnf">
+        <summary>BNF 全 90 規則を見る（bison の文法から自動生成）</summary>
+<pre>@@BNF@@</pre>
+      </details>
+      <p style="margin-top:16px">「次のことを行う。」で囲まずに条件を直接入れ子にできる版も作りました。この版は if‑then‑else の衝突がちょうど 1 件出ます。C 言語と同じく「一番近い『ならば』に付く」と決めれば、読み方はひと通りに決まります。この版は、文章の読み手がそう読むとは限らないので、標準にはしていません。</p>
+    </section>
+
+    <section id="check">
+      <h2>検証</h2>
+      <p class="sec-sub">「通るはず」ではなく、道具で確かめた結果です（2026 年 11 月 11 日）。</p>
+      <table class="check">
+        <tr><th>確かめたこと</th><th>結果</th></tr>
+        <tr><td>bison 3.8.2 で文法を検査（LALR(1)）</td><td class="r">衝突 0（状態 185）</td></tr>
+        <tr><td>条件を直接入れ子にできる版の文法</td><td class="r">衝突 1（else の付き先だけ）</td></tr>
+        <tr><td>見本 9 本（文法違反の例を除く）を「文章 → 構造化 → 文章 → 構造化」と往復</td><td class="r">構造化形式は 9 本とも一字一句同じ</td></tr>
+        <tr><td>逆変換した文章をもう一度変換</td><td class="r">9 本とも変わらない</td></tr>
+        <tr><td>このページの変換器（JavaScript）と C 版・Python 版の出力の突き合わせ（見本 10 本）</td><td class="r">10 本とも一致<br>（違反の例は両方とも同じ所で止まる）</td></tr>
+        <tr><td>例題 4 本（ユークリッドの互除法・ハノイの塔・バブルソート・クイックソート）を、乱数の種 1〜300 で実行</td><td class="r">4 本とも 300 回すべて正しい答え<br>（最大公約数 21 と 2、15 手、1〜9 の昇順）</td></tr>
+        <tr><td>5 人の哲学者（番号の小さいフォークから取る版）を、乱数の種 1〜1000 で実行</td><td class="r">1000 回とも全員が 3 回食べて満腹で終了</td></tr>
+        <tr><td>同じ問題で、全員が左のフォークから取る版を種 1〜1000 で実行</td><td class="r">721 回はデッドロックで停止<br>（止まると待ちの輪を表示）</td></tr>
+        <tr><td>哲学者の文章から文を消す・入れ替える・重ねた変異 300 本を、両方の解析器に通す</td><td class="r">300 本とも判定と出力が一致<br>（通った 103／弾いた 197）</td></tr>
+      </table>
+      <p style="margin-top:14px;color:var(--mute);font-size:.9rem">このページの解析器は、bison に渡した文法ファイルそのものから jison（bison 互換の生成器）で作っています。手で別の解析器を書いていないので、文法がずれることはありません。</p>
+    </section>
+
+    <section id="links">
+      <h2>関連</h2>
+      <div class="links">
+        <a class="btn dark" href="../aipl-intro/">AIPL の紹介（アクター言語）</a>
+        <a class="btn light" href="../">kodamay.org トップ</a>
+        <a class="btn light" href="https://www.kodama-lab.com/" target="_blank" rel="noopener">児玉研究室</a>
+      </div>
+    </section>
+  </main>
+  <footer>ことのは — 日本語の文章で書くアクター並列言語 ・ 法政大学 児玉研究室</footer>
+  <script src="kotonoha.js"></script>
+  <script src="samples.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

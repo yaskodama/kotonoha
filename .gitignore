@@ -1,0 +1,13 @@
+web/node_modules/
+/kotonoha
+kotonoha.report
+xinu/kxinu/build/
+xinu/kxc/kxc.tab.c
+xinu/kxc/kxc.tab.h
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/build.log
+.DS_Store
+許容版/kotonoha
+web/.deploy.env
