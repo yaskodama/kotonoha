@@ -11,3 +11,4 @@ paper/build.log
 .DS_Store
 許容版/kotonoha
 web/.deploy.env
+NEXT_SESSION.md
