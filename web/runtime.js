@@ -568,6 +568,8 @@ var Kotonoha = (function () {
 
   return { toKozo: toKozo, toBunsho: toBunsho, lex: lex, makeRun: makeRun, KotoError: KotoError,
     // Xinu 向け変換器（../xinu/k2xinu.mjs）が構文木と式の分解を使う
-    _tree: function (src) { return parseProgram(new Lines(toKozo(src))); }, _arith: arith };
+    _tree: function (src) { return parseProgram(new Lines(toKozo(src))); }, _arith: arith,
+    // 流れ図のページ（site/flow.js）が文を文章形式の言い回しに戻すのに使う
+    _clause: clause, _expr: expr };
 })();
 if (typeof module !== "undefined") module.exports = Kotonoha;

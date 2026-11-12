@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ことのは — プログラムを流れ図に</title>
+  <meta name="description" content="ことのはの文章形式のプログラムを、受信節ごとの流れ図（JIS X 0121 の記号）に変換します。ブラウザの中で動き、SVG で保存できます。">
+  <style>
+    :root {
+      --ink: #1d2433; --mute: #5f6b80; --line: #e2e6ee; --bg: #f8f7f3; --card: #ffffff;
+      --main: #7a2e3a; --accent: #c8553d; --code-bg: #fffdf7; --ok: #2e7d32; --err: #c62828;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); line-height: 1.85;
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", Meiryo, "Helvetica Neue", Arial, sans-serif; }
+    a { color: var(--main); }
+    .mincho { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; }
+    header.top { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.93);
+      backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+    .top-inner { max-width: 1280px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 18px; }
+    .logo { font-weight: 800; font-size: 1.25rem; letter-spacing: .08em; color: var(--ink); text-decoration: none; }
+    .logo span { color: var(--accent); }
+    .top nav { margin-left: auto; display: flex; gap: 16px; flex-wrap: wrap; }
+    .top nav a { color: var(--ink); text-decoration: none; font-size: .92rem; font-weight: 600; }
+    .top nav a.cur { color: var(--main); border-bottom: 2px solid var(--main); }
+
+    .intro { max-width: 1280px; margin: 0 auto; padding: 32px 20px 8px; }
+    h1 { font-size: 1.7rem; margin: 0 0 4px; }
+    .sub-lead { color: var(--mute); margin: 0; }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 999px; text-decoration: none; border: 0; cursor: pointer;
+      font: inherit; font-weight: 700; font-size: .88rem; }
+    .btn.dark { background: var(--main); color: #fff; }
+    .btn.light { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+
+    .work { max-width: 1280px; margin: 18px auto 0; padding: 0 20px; display: grid; grid-template-columns: minmax(300px, 400px) 1fr; gap: 20px; align-items: start; }
+    .work > * { min-width: 0; }
+    .editor { position: sticky; top: 64px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .bar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; border-bottom: 1px solid var(--line); background: #fcfbf8; font-size: .86rem; }
+    .bar select { font: inherit; font-size: .85rem; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: #fff; max-width: 100%; }
+    textarea { display: block; width: 100%; height: calc(100vh - 290px); min-height: 280px; resize: vertical; border: 0; outline: none;
+      padding: 12px 14px; font-size: .84rem; line-height: 1.7; background: var(--code-bg); color: var(--ink); }
+    .status { padding: 8px 12px; border-top: 1px solid var(--line); font-size: .84rem; white-space: pre-wrap; }
+    .status.ok { color: var(--ok); } .status.err { color: var(--err); font-weight: 700; }
+
+    #toc { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+    .chip { font-size: .8rem; padding: 2px 10px; border-radius: 999px; background: #fff; border: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+    .chip.a { background: #f6e9e6; border-color: #ead0ca; font-weight: 700; color: var(--main); }
+    .chip.m { background: #e9eef6; border-color: #cfd9ea; font-weight: 700; color: #2f4f7f; }
+    .actor { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; scroll-margin-top: 70px; }
+    .actor-h { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+    .tag { font-size: .72rem; font-weight: 700; color: #fff; background: var(--accent); border-radius: 6px; padding: 0 8px; }
+    .tag.m { background: #3a6ea5; }
+    .actor-s { color: var(--mute); font-size: .86rem; margin: 2px 0 6px; }
+    .chart { border-top: 1px dashed var(--line); padding-top: 10px; margin-top: 10px; scroll-margin-top: 70px; }
+    .chart-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: .95rem; }
+    .chart-h .sub { color: var(--mute); font-size: .82rem; }
+    .chart-h .dl { margin-left: auto; padding: 3px 12px; font-size: .78rem; }
+    .svgwrap { overflow-x: auto; padding: 6px 0; }
+    .svgwrap svg { display: block; }
+    .none { color: var(--mute); font-size: .88rem; margin: 6px 0 0; }
+
+    .legend { max-width: 1280px; margin: 30px auto 0; padding: 0 20px; }
+    .legend h2 { font-size: 1.3rem; margin: 0 0 8px; }
+    .lg { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+    .lg div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; font-size: .86rem; }
+    .lg svg { flex: none; }
+    .notes { font-size: .92rem; } .notes li { margin: 4px 0; }
+    footer { margin-top: 48px; padding: 24px 20px; text-align: center; color: var(--mute); font-size: .85rem; border-top: 1px solid var(--line); }
+
+    @media (max-width: 860px) {
+      .work { grid-template-columns: 1fr; }
+      .editor { position: static; }
+      textarea { height: 300px; }
+      .top nav a:not(.cur):not(.home) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="logo mincho" href="./">ことのは<span>。</span></a>
+      <nav>
+        <a class="home" href="./">トップ</a>
+        <a href="./#try">試してみる</a>
+        <a href="./#grammar">文法</a>
+        <a class="cur" href="flow.html">流れ図</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="intro">
+    <h1>プログラムを流れ図に</h1>
+    <p class="sub-lead">文章形式のプログラムを解析して、<strong>受信節ごとに 1 枚</strong>の流れ図を描きます。左の欄を書き換えると、すぐに描き直します。変換はすべてブラウザの中で行います。</p>
+  </section>
+
+  <div class="work">
+    <div class="editor">
+      <div class="bar">
+        <label for="sample">見本</label>
+        <select id="sample"></select>
+        <button class="btn dark" id="drawBtn" type="button">流れ図にする</button>
+      </div>
+      <textarea id="src" class="mincho" spellcheck="false" aria-label="文章形式のプログラム"></textarea>
+      <div class="status" id="status" aria-live="polite"></div>
+    </div>
+    <div>
+      <nav id="toc" aria-label="流れ図の一覧"></nav>
+      <div id="charts"></div>
+    </div>
+  </div>
+
+  <section class="legend">
+    <h2>記号と読み方</h2>
+    <div class="lg">
+      <div><svg width="70" height="30"><rect x="2" y="3" width="66" height="24" rx="12" fill="#f6e9e6" stroke="#7a2e3a" stroke-width="1.4"/></svg>端子：受信節の始まり（メッセージが届いたとき）と終わり（次のメッセージを待つ）</div>
+      <div><svg width="70" height="30"><rect x="2" y="3" width="66" height="24" fill="#fff" stroke="#8a93a6" stroke-width="1.4"/></svg>処理：変更する・加える・追加する・取り出す・生成する</div>
+      <div><svg width="70" height="34"><path d="M35 2 L68 17 L35 32 L2 17 Z" fill="#fff7e6" stroke="#c8553d" stroke-width="1.4"/></svg>判断：「〜ならば、」。はいは下へ、いいえは右へ進み、下で合流する</div>
+      <div><svg width="70" height="30"><path d="M8 3 L62 3 L68 9 L68 27 L2 27 L2 9 Z" fill="#eef4fb" stroke="#3a6ea5" stroke-width="1.4"/></svg>ループ端：「AからBまでの各番号について、」の始まりと終わり（同じ番号が対）</div>
+      <div><svg width="70" height="30"><path d="M2 3 L56 3 L68 15 L56 27 L2 27 Z" fill="#eaf5ea" stroke="#2e7d32" stroke-width="1.4"/></svg>送信：「〜に「…」というメッセージを送る」。相手の受信節が動き出す（この図で決めた記号）</div>
+      <div><svg width="70" height="30"><path d="M14 3 L56 3 Q72 15 56 27 L14 27 L2 15 Z" fill="#f3effa" stroke="#6a4c9c" stroke-width="1.4"/></svg>表示：「〜を表示する」</div>
+    </div>
+    <ul class="notes">
+      <li>記号は JIS X 0121（情報処理用流れ図記号）に沿っています。送信だけは JIS に当てはまる記号がないので、この図で決めました。</li>
+      <li>ことのはのアクターは、メッセージが届くたびに受信節を<strong>最後まで一気に</strong>実行します。だから流れ図は「受信節ごとに 1 枚」で、どの図も途中で止まって待つことはありません。送信は相手に届けるだけで、返事を待たずに次へ進みます。</li>
+      <li>どの受信節が次に動くかは、図には現れません。それを決めるのはメッセージの届き方です。トップページの「<a href="./#try">試してみる</a>」で、乱数の種を変えて動かすと確かめられます。</li>
+      <li>箱の中の言い回しは、構文木から作り直した標準の書き方です。箱にマウスを重ねると、文の全文が出ます。図は「SVG で保存」で画像として保存できます。</li>
+    </ul>
+  </section>
+
+  <footer>ことのは — 日本語の文章で書くアクター並列言語 ・ 法政大学 児玉研究室</footer>
+  <script src="kotonoha.js"></script>
+  <script src="samples.js"></script>
+  <script src="flow.js"></script>
+</body>
+</html>

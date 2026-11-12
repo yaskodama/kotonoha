@@ -26,7 +26,7 @@ samples = [
 arr = [{"title": t, "text": open(p, encoding="utf-8").read(), "expectError": e} for t, p, e in samples]
 open(f"{out}/samples.js", "w", encoding="utf-8").write("var KOTONOHA_SAMPLES = " + json.dumps(arr, ensure_ascii=False, indent=1) + ";\n")
 PY
-cp kotonoha.js site/app.js "$OUT/"
+cp kotonoha.js site/app.js site/flow.html site/flow.js "$OUT/"
 for f in "$OUT"/*.js; do node --check "$f"; done
 chmod 644 "$OUT"/*
 ls -la "$OUT"
